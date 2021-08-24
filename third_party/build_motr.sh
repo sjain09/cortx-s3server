@@ -7,5 +7,5 @@ cd motr
 # Uncomment following line to compile motr with both KVS and Cassandra
 # export CONFIGURE_OPTS=--with-cassandra
 PROCESSORS_AVAILABLE=$(cat /proc/cpuinfo | grep '^processor' | wc -l)
-MAKE_OPTS=./scripts/m0 rebuild
+MAKE_OPTS=-j1 ./scripts/m0 rebuild
 cd ..
