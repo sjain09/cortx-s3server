@@ -125,6 +125,8 @@ void S3GetObjectAction::validate_object_info() {
   if (content_length == 0) {
     // AWS add explicit quotes "" to etag values.
     // https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObject.html
+    s3_log(S3_LOG_INFO, stripped_request_id, "%s Here -2\n", __func__);
+
     std::string e_tag = "\"" + object_metadata->get_md5() + "\"";
 
     request->set_out_header_value("Last-Modified",
@@ -414,6 +416,8 @@ void S3GetObjectAction::send_data_to_client() {
     // AWS add explicit quotes "" to etag values.
     // https://docs.aws.amazon.com/AmazonS3/latest/API/API_GetObject.html
     std::string e_tag = "\"" + object_metadata->get_md5() + "\"";
+    s3_log(S3_LOG_INFO, stripped_request_id, "%s Here -3\n", __func__);
+
 
     request->set_out_header_value("Last-Modified",
                                   object_metadata->get_last_modified_gmt());
