@@ -508,10 +508,12 @@ void S3GetObjectAction::send_response_to_s3_client() {
   s3_log(S3_LOG_INFO, stripped_request_id, "%s Entry\n", __func__);
 
   if (reject_if_shutting_down()) {
+    s3_log(S3_LOG_INFO, stripped_request_id, "%s Here -1\n", __func__);
     if (read_object_reply_started) {
       request->send_reply_end();
     } else {
       // Send response with 'Service Unavailable' code.
+      s3_log(S3_LOG_INFO, stripped_request_id, "%s Here 0\n", __func__);
       s3_log(S3_LOG_DEBUG, request_id,
              "sending 'Service Unavailable' response...\n");
       S3Error error("ServiceUnavailable", request->get_request_id(),
@@ -526,6 +528,8 @@ void S3GetObjectAction::send_response_to_s3_client() {
     }
   } else if (is_error_state() && !get_s3_error_code().empty()) {
     // Invalid Bucket Name
+    s3_log(S3_LOG_INFO, stripped_request_id, "%s Here 1\n", __func__);
+
     S3Error error(get_s3_error_code(), request->get_request_id(),
                   request->get_object_uri());
     std::string& response_xml = error.to_xml();
@@ -540,11 +544,17 @@ void S3GetObjectAction::send_response_to_s3_client() {
              (object_metadata->get_content_length() == 0 ||
               (motr_reader &&
                motr_reader->get_state() == S3MotrReaderOpState::success))) {
+    s3_log(S3_LOG_INFO, stripped_request_id, "%s Here 2\n", __func__);
+
     request->send_reply_end();
   } else {
+    s3_log(S3_LOG_INFO, stripped_request_id, "%s Here 3\n", __func__);
+
     if (read_object_reply_started) {
       request->send_reply_end();
     } else {
+      s3_log(S3_LOG_INFO, stripped_request_id, "%s Here 4\n", __func__);
+
       S3Error error("InternalError", request->get_request_id(),
                     request->get_object_uri());
       std::string& response_xml = error.to_xml();
