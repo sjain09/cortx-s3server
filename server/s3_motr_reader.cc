@@ -235,9 +235,8 @@ bool S3MotrReader::read_object() {
       std::bind(&S3MotrReader::read_object_failed, this), layout_id));
 
   /* Read the requisite number of blocks from the entity */
-  /*if (!reader_context->init_read_op_ctx(request_id, num_of_blocks_to_read,
-                                        motr_unit_size, &last_index))*/
-    if (true) {
+  if (!reader_context->init_read_op_ctx(request_id, num_of_blocks_to_read,
+                                        motr_unit_size, &last_index)) {
     // out-of-memory
     state = S3MotrReaderOpState::ooo;
     s3_log(S3_LOG_ERROR, request_id,
