@@ -699,31 +699,26 @@ void free_evhtp_handle(evhtp_t *htp) {
   }
 }
 
-int main(int argc, char **argv) {
+int setup_motr() {
+  /* Initialise Motr */
+  int rc = init_motr();
+  if (rc < 0) {
+    s3_log(S3_LOG_ERROR, "", "motr_init failed!\n");
+    return rc;
+  }
+
+  return rc;
+}
+
+int init_s3server(int argc, char **argv, S3Daemonize &s3daemon) {
   int rc = 0;
   pthread_t tid;
   struct event *signal_sigint_event;
   struct event *signal_sigterm_event;
   struct event *signal_sighup_event;
+
   // map will have s3server { fid, instance_id } information
   std::map<std::string, std::string> s3server_instance_id;
-
-  // Load Any configs.
-  if (parse_and_load_config_options(argc, argv) < 0) {
-    fprintf(stderr, "%s:%d:parse_and_load_config_options failed\n", __FILE__,
-            __LINE__);
-    exit(1);
-  }
-
-  // Init general purpose logger here but don't use it for non-FATAL logs
-  // until we daemonize.
-  rc = init_log(argv[0]);
-  if (rc < 0) {
-    fprintf(stderr, "%s:%d:init_log failed\n", __FILE__, __LINE__);
-    // To satisfy valgrind
-    finalize_cli_options();
-    exit(1);
-  }
 
   S3ErrorMessages::init_messages();
   g_option_instance = S3Option::get_instance();
@@ -741,9 +736,7 @@ int main(int argc, char **argv) {
     }
   }
 
-  S3Daemonize s3daemon;
   set_fatal_handler_exit();
-  s3daemon.daemonize();
 #if 0
   s3daemon.register_signals();
 #endif
@@ -937,14 +930,6 @@ int main(int argc, char **argv) {
   // we will send IEM Alert, so that IO stack gets restarted
   event_add(timer_event, &tv);
 
-  /* Initialise Motr */
-  rc = init_motr();
-  if (rc < 0) {
-    s3daemon.delete_pidfile();
-    fini_auth_ssl();
-    finalize_cli_options();
-    s3_log(S3_LOG_FATAL, "", "motr_init failed!\n");
-  }
   // delete the timer event
   event_del(timer_event);
   event_free(timer_event);
@@ -1233,4 +1218,66 @@ int main(int argc, char **argv) {
   // Added in libevent 2.1
   libevent_global_shutdown();
   return 0;
+}
+
+int main(int argc, char **argv) {
+  fprintf(stderr, "%s:%d:Main Entry Parsing Args\n", __FILE__, __LINE__);
+
+  // Load Any configs.
+  if (parse_and_load_config_options(argc, argv) < 0) {
+    fprintf(stderr, "%s:%d:parse_and_load_config_options failed\n", __FILE__,
+            __LINE__);
+    exit(1);
+  }
+
+  fprintf(stderr, "%s:%d:Parsing Args Success..\n", __FILE__, __LINE__);
+
+  // Init general purpose logger here but don't use it for non-FATAL logs
+  // until we daemonize.
+  int rc_code = init_log(argv[0]);
+  if (rc_code < 0) {
+    fprintf(stderr, "%s:%d:init_log failed\n", __FILE__, __LINE__);
+    // To satisfy valgrind
+    finalize_cli_options();
+    exit(1);
+  }
+
+  fprintf(stderr, "%s:%d:Init Log Success..\n", __FILE__, __LINE__);
+
+  S3Daemonize s3daemon;
+  s3daemon.daemonize();
+
+  int icounter = 0;
+  bool bexit = false;
+  while (true) {
+    fprintf(stderr, "%s:%d:In Loop\n", __FILE__, __LINE__);
+
+    int rc = setup_motr();
+    if (rc == 0) {
+      fprintf(stderr, "%s:%d:Exiting Loop\n", __FILE__, __LINE__);
+      break;
+    }
+
+    if (icounter < 10) {
+      fprintf(stderr, "%s:%d:Try number : %d\n", __FILE__, __LINE__, icounter);
+      icounter++;
+    } else {
+      fprintf(stderr,
+              "%s:%d:breaking from loop max attempts exceeded : %d, Couldnt "
+              "connect to motr, exitting\n",
+              __FILE__, __LINE__, icounter);
+      bexit = true;
+      break;
+    }
+
+    fprintf(stderr, "%s:%d:Motr Failure rc = %d\n", __FILE__, __LINE__, rc);
+    sleep(30);
+  }
+
+  if (!bexit) {
+    return init_s3server(argc, argv, s3daemon);
+  } else {
+    s3daemon.delete_pidfile();
+    return 1;
+  }
 }
