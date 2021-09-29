@@ -49,16 +49,7 @@ pull_images_for_pod k8s-blueprints/io-pod.yaml
 # kubectl apply -f k8s-blueprints/s3-pvc.yaml
 kubectl apply -f k8s-blueprints/io-pod.yaml
 
-set +x
-while [ `kubectl get pod | grep io-pod | grep Running | wc -l` -lt 1 ]; do
-  echo
-  kubectl get pod | grep 'NAME\|io-pod'
-  echo
-  echo io-pod is not yet in Running state, re-checking ...
-  echo '(hit CTRL-C if it is taking too long)'
-  sleep 5
-done
-set -x
+wait_till_pod_is_Running io-pod
 
 set_var_POD_IP io-pod
 echo "IO_POD_IP='$POD_IP'" >> env.sh
