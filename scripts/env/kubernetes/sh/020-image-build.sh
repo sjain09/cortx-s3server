@@ -26,12 +26,12 @@ source ./sh/functions.sh
 
 set -x # print each statement before execution
 
-add_separator BUILDING CORTX-ALL IMAGE LOCALLY.
-
 if [ -z "$S3_CORTX_ALL_CUSTOM_CI_NUMBER" ]; then
   # no need to build image
   exit 0
 fi
+
+add_separator BUILDING CORTX-ALL IMAGE LOCALLY.
 
 if ! which docker-compose; then
   sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
