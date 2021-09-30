@@ -60,7 +60,7 @@ spec:
         args:
         - /bin/sh
         - -c
-        - set -x;
+        - set -x -e;
           export PATH=$PATH:/opt/seagate/cortx/provisioner/bin;
           yq -r .cluster.storage_sets[0].nodes[] /etc/cortx/solution/cluster.yaml | jq '. | select (.name == env.NODE_NAME)' > $NODE_INFO;
           echo "Node INFO:";

@@ -30,16 +30,19 @@ add_separator RUNNING PROVISIONER TO CREATE CONFSTORE.
 
 image_tag="$PRVSNR_CORTX_ALL_IMAGE_TAG"
 if [ -z "$image_tag" ]; then
-  image_tag="$S3_CORTX_ALL_IMAGE_TAG}"
+  image_tag="$S3_CORTX_ALL_IMAGE_TAG"
 fi
 cat k8s-blueprints/cortx-provisioner-pod.yaml.template \
-  | sed "s,<prvsnr-cortx-all-image>,ghcr.io/seagate/cortx-all:${PRVSNR_CORTX_ALL_IMAGE_TAG}," \
+  | sed "s,<prvsnr-cortx-all-image>,ghcr.io/seagate/cortx-all:${image_tag}," \
   > k8s-blueprints/cortx-provisioner-pod.yaml
 
 # git clone https://github.com/Seagate/cortx-prvsnr -b kubernetes
 git clone -b br/sachit/new-s3-config https://github.com/sachitanands/cortx-prvsnr-Kubernetes cortx-prvsnr
 
 cd cortx-prvsnr/test/deploy/kubernetes
+
+# --force will sometimes freeze, let's use --wait=false
+sed -i -e 's,--force,--wait=false,' ./destroy.sh
 
 sh ./deploy.sh
 
@@ -50,7 +53,7 @@ kubectl apply -f "$AUTOMATION_BASE_DIR"/k8s-blueprints/cortx-provisioner-pvc.yam
 kubectl apply -f ./solution-config/secrets.yaml --namespace cortx
 kubectl apply -f "$AUTOMATION_BASE_DIR"/k8s-blueprints/cortx-provisioner-pod.yaml --namespace cortx
 
-wait_till_pod_is_Running cortx-provisioner --namespace cortx
+wait_till_pod_is_Running podnode-0 --namespace cortx
 
 # save result, as it will be deleted by destroy.sh
 cp /etc/cortx/cluster.conf "$AUTOMATION_BASE_DIR"
@@ -59,9 +62,6 @@ kubectl delete -f "$AUTOMATION_BASE_DIR"/k8s-blueprints/cortx-provisioner-pod.ya
 kubectl delete -f ./solution-config/secrets.yaml --namespace cortx
 kubectl delete -f "$AUTOMATION_BASE_DIR"/k8s-blueprints/cortx-provisioner-pvc.yaml --namespace cortx
 kubectl delete -f "$AUTOMATION_BASE_DIR"/k8s-blueprints/cortx-provisioner-pv.yaml --namespace cortx
-
-# --force will sometimes freeze, let's use --wait=false
-sed -i -e 's,--force,--wait=false,' ./destroy.sh
 
 sh ./destroy.sh
 
