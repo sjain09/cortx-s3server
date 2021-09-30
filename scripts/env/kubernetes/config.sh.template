@@ -23,7 +23,7 @@ S3_CORTX_ALL_IMAGE_TAG=2.0.0-194-custom-ci
 #S3_CORTX_ALL_IMAGE_TAG=2.0.0-latest-custom-ci
   # Specifies which image to use for S3 containers.
   # Update if you want to test specific build instead of latest.
-  # 
+  #
   # List of avilable images here:
   # https://github.com/Seagate/cortx-re/pkgs/container/cortx-all
 
@@ -44,3 +44,14 @@ DOCKER_USER_NAME=
 DOCKER_PASSWORD=
   # www.docker.com credentials.  Optional.  Fill in if you need to avoid Rate
   # Limiting issue.
+
+###########################################################################
+#                  #
+# for provisioning #
+#                  #
+####################
+
+USE_PROVISIONING=no
+  # yes/no.
+  # When yes, it will try to create confstore from solution config.
+  # When no, it will use template files.

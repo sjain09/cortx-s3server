@@ -42,7 +42,7 @@ git clone -b br/sachit/new-s3-config https://github.com/sachitanands/cortx-prvsn
 mkdir -p /etc/cortx/s3/solution.cpy/
 cp cortx-prvsnr/test/deploy/kubernetes/solution-config/* /etc/cortx/s3/solution.cpy/
 
-kubectl apply
+kubectl apply -f /etc/cortx/s3/solution.cpy/secrets.yaml
 
 # cd cortx-prvsnr/test/deploy/kubernetes
 #

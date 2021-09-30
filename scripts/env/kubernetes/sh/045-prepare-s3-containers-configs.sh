@@ -47,16 +47,7 @@ pull_images_for_pod k8s-blueprints/shim-pod.yaml
 
 kubectl apply -f k8s-blueprints/shim-pod.yaml
 
-set +x
-while [ `kubectl get pod | grep shim-pod | grep Running | wc -l` -lt 1 ]; do
-  echo
-  kubectl get pod | grep 'NAME\|shim-pod'
-  echo
-  echo shim-pod is not yet in Running state, re-checking ...
-  echo '(hit CTRL-C if it is taking too long)'
-  sleep 5
-done
-set -x
+wait_till_pod_is_Running  shim-pod
 
 kube_run() {
   kubectl exec -i shim-pod -c shim -- "$@"
@@ -120,15 +111,18 @@ set_kv TMPL_METADATA_DEVICE          FIXME
 # S3 mini provisioner call #
 ############################
 
-kube_run "$src_dir/s3server/s3-mini-prov.sh"
-
-
-# 'manual' step for machine-id (until proper solution is merged) FIXME
-kube_run sh -c 'cat /etc/machine-id > /etc/cortx/s3/machine-id'
+if [ "$USE_PROVISIONING" = yes ]; then
+  kube_run "$src_dir/s3server/shim-provisioner.sh"
+else
+  kube_run "$src_dir/s3server/s3-mini-prov.sh"
+fi
 
 # #############
 # # S3 server #
 # #############
+
+# 'manual' step for machine-id (until proper solution is merged) FIXME
+kube_run sh -c 'cat /etc/machine-id > /etc/cortx/s3/machine-id'
 
 # Increase retry interval
 sed -i \
