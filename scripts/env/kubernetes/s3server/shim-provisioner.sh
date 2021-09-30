@@ -25,6 +25,6 @@ src_dir="$s3_repo_dir"/scripts/env/kubernetes
 
 source "$src_dir/env.sh"
 
-cortx_setup config apply -f /etc/cortx/s3/solution.cpy/cluster.yaml -c yaml:////etc/cortx/cluster.conf
-cortx_setup config apply -f /etc/cortx/s3/solution.cpy/config.yaml  -c yaml:////etc/cortx/cluster.conf
-cortx_setup cluster bootstrap -c yaml:////etc/cortx/cluster.conf
+cortx_setup config apply -f yaml:///etc/cortx/s3/solution.cpy/cluster.yaml -c yaml:///etc/cortx/cluster.conf
+cortx_setup config apply -f yaml:///etc/cortx/s3/solution.cpy/config.yaml  -c yaml:///etc/cortx/cluster.conf
+cortx_setup cluster bootstrap -c yaml:///etc/cortx/cluster.conf
