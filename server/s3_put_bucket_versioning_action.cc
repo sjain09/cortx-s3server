@@ -95,11 +95,11 @@ void S3PutBucketVersioningAction::validate_request_body(std::string content) {
     std::string s3_error =
         put_bucket_version_body->get_additional_error_information();
     if (s3_error.compare("OperationNotSupported") == 0) {
-      set_s3_error("OperationNotSupported");
-      send_response_to_s3_client();
+	    set_s3_error("OperationNotSupported");
+	    send_response_to_s3_client();
     } else {
-    set_s3_error("MalformedXML");
-    send_response_to_s3_client();
+	    set_s3_error("MalformedXML");
+	    send_response_to_s3_client();
     }
   }
   s3_log(S3_LOG_DEBUG, "", "%s Exit", __func__);

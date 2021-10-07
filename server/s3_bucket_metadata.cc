@@ -77,6 +77,10 @@ const std::string& S3BucketMetadata::get_owner_canonical_id() {
   return system_defined_attribute["Owner-Canonical-id"];
 }
 
+const std::string& S3BucketMetadata::get_bucket_versioning() const {
+  return bucket_versioning_status;
+}
+
 const struct s3_motr_idx_layout& S3BucketMetadata::get_multipart_index_layout()
     const {
   return multipart_index_layout;
@@ -286,6 +290,20 @@ std::string S3BucketMetadata::get_tags_as_xml() {
 
 bool S3BucketMetadata::check_bucket_tags_exists() const {
   return !bucket_tags.empty();
+}
+
+std::string S3BucketMetadata::get_versioning_status_as_xml() {
+  std::string versioning_as_xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+  if (bucket_versioning_status == "Unversioned") {
+      versioning_as_xml +="<VersioningConfiguration "
+                      "xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\"/>";
+  } else {
+      versioning_as_xml +="<VersioningConfiguration "
+                      "xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">";
+      versioning_as_xml += S3CommonUtilities::format_xml_string("Status", bucket_versioning_status);
+      versioning_as_xml += "</VersioningConfiguration>";
+  }
+  return versioning_as_xml;
 }
 
 void S3BucketMetadata::load(std::function<void(void)>,
