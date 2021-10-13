@@ -23,6 +23,7 @@
 #ifndef _S3_SERVER_S3_GET_BUCKET_VERSIONING_ACTION_H_
 #define _S3_SERVER_S3_GET_BUCKET_VERSIONING_ACTION_H_
 
+#include <gtest/gtest_prod.h>
 #include <memory>
 
 #include "s3_bucket_action_base.h"
@@ -38,6 +39,7 @@ class S3GetBucketVersioningAction : public S3BucketAction {
     void fetch_bucket_info_failed();
     void send_response_to_s3_client(); 
 
+    FRIEND_TEST(S3GetBucketVersioningActionTest, Constructor);
 };
 
 #endif
