@@ -170,6 +170,7 @@ std::string S3BucketMetadata::to_json() {
   root["motr_objects_version_list_index_layout"] =
       S3M0Uint128Helper::to_string(objects_version_list_index_layout);
 
+  root["bucket_versioning_status"] = bucket_versioning_status;
   S3DateTime current_time;
   current_time.init_current_time();
   root["create_timestamp"] = current_time.get_isoformat_string();
@@ -216,7 +217,7 @@ int S3BucketMetadata::from_json(std::string content) {
 
   objects_version_list_index_layout = S3M0Uint128Helper::to_idx_layout(
       newroot["motr_objects_version_list_index_layout"].asString());
-
+  bucket_versioning_status = newroot["bucket_versioning_status"].asString();
   acl_from_json((newroot["ACL"]).asString());
   bucket_policy = base64_decode(newroot["Policy"].asString());
 
