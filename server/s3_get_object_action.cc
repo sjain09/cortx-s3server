@@ -66,7 +66,6 @@ void S3GetObjectAction::setup_steps() {
   ACTION_TASK_ADD(S3GetObjectAction::check_full_or_range_object_read, this);
   ACTION_TASK_ADD(S3GetObjectAction::read_object, this);
   ACTION_TASK_ADD(S3GetObjectAction::send_response_to_s3_client, this);
-  // ...
 }
 
 void S3GetObjectAction::fetch_bucket_info_failed() {

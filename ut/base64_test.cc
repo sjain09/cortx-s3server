@@ -95,3 +95,9 @@ TEST(Base64, TripleAscii) {
   EXPECT_EQ(s_decoded.length(), BUFFER_SIZE);
   EXPECT_FALSE(memcmp(s_decoded.c_str(), buffer.get(), BUFFER_SIZE));
 }
+
+TEST(base64, InvalidInput) {
+  std::string invalid = "%@*#@*<<><:::\"?\"__+##!!!***jkhfkas%%$$%^%$   90942<>><??";
+  std::string res = base64_decode(invalid);
+  EXPECT_TRUE(res = "");
+}

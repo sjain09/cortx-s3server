@@ -750,6 +750,9 @@ void S3PutObjectAction::send_response_to_s3_client() {
     std::string e_tag = "\"" + motr_writer->get_content_md5() + "\"";
 
     request->set_out_header_value("ETag", e_tag);
+    if (bucket_metadata->get_bucket_versioning() == "Enabled") {
+      request->set_out_header_value("x-amz-version-id", new_object_metadata->get_obj_version_id());
+    }
 
     request->send_response(S3HttpSuccess200);
   }
@@ -770,20 +773,20 @@ void S3PutObjectAction::startcleanup() {
   cleanup_started = true;
 
   // Success conditions
-  if (s3_put_action_state == S3PutObjectActionState::completed) {
+  if (s3_put_action_state == S3PutObjectActionState::completed &&
+        bucket_metadata->get_bucket_versioning() != "Enabled") {
     s3_log(S3_LOG_DEBUG, request_id, "Cleanup old Object\n");
     if (old_object_oid.u_hi || old_object_oid.u_lo) {
       // mark old OID for deletion in overwrite case, this optimizes
       // backgrounddelete decisions.
       ACTION_TASK_ADD(S3PutObjectAction::mark_old_oid_for_deletion, this);
-    }
-    // remove new oid from probable delete list.
-    ACTION_TASK_ADD(S3PutObjectAction::remove_new_oid_probable_record, this);
-    if (old_object_oid.u_hi || old_object_oid.u_lo) {
       // Object overwrite case, old object exists, delete it.
       ACTION_TASK_ADD(S3PutObjectAction::delete_old_object, this);
       // If delete object is successful, attempt to delete old probable record
     }
+    // remove new oid from probable delete list.
+    ACTION_TASK_ADD(S3PutObjectAction::remove_new_oid_probable_record, this);
+
   } else if (s3_put_action_state == S3PutObjectActionState::newObjOidCreated ||
              s3_put_action_state == S3PutObjectActionState::writeFailed ||
              s3_put_action_state ==
