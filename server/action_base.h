@@ -156,6 +156,8 @@ class Action {
   bool action_uses_cleanup;
   bool cleanup_started;  // action has started cleanup process.
 
+  std::map<std::string, std::string> invalid_args;
+
  public:
   Action(std::shared_ptr<RequestObject> req, bool check_shutdown = true,
          std::shared_ptr<S3AuthClientFactory> auth_factory = nullptr,
@@ -169,6 +171,7 @@ class Action {
   const std::string& get_s3_error_message() const;
   bool is_error_state() const;
   void client_read_error();
+  void set_invalid_argument(std::string arg_name, std::string arg_val);
 
  protected:
   void add_task(std::function<void()> task, const char* func_name) {

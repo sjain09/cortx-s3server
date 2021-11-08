@@ -56,6 +56,7 @@ class S3Error {
   S3ErrorDetails& details;
 
   std::string xml_message;
+  std::map<std::string, std::string> invalid_args;
 
  public:
   S3Error(const std::string& error_code, std::string req_id,
@@ -64,6 +65,7 @@ class S3Error {
   int get_http_status_code();
 
   void set_auth_error_message(const std::string&);
+  void set_invalid_arg(const std::string& arg_name, const std::string& arg_val);
 
   std::string& to_xml(bool no_decl = false);
 };

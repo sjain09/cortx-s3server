@@ -89,6 +89,10 @@ void Action::set_s3_error_message(std::string message) {
   s3_error_message = std::move(message);
 }
 
+void Action::set_invalid_argument(std::string arg_name, std::string arg_val) {
+  invalid_args[std::move(arg_name)] = std::move(arg_val);
+}
+
 void Action::client_read_error() {
   const std::string& s3_error = base_request->get_s3_client_read_error();
   set_s3_error(s3_error);

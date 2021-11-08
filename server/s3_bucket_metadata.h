@@ -96,7 +96,11 @@ class S3BucketMetadata {
   const std::string& get_owner_id();
   const std::string& get_bucket_owner_account_id();
   const std::string& get_encoded_bucket_acl() const;
+<<<<<<< HEAD
   const std::string& get_bucket_versioning_status() const;
+=======
+  const std::string& get_bucket_versioning_status() const { return bucket_versioning_status; }
+>>>>>>> 67e9653f ([EOS-24955] GetObejct with version)
 
   virtual bool check_bucket_tags_exists() const;
 
