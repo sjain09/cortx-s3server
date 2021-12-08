@@ -21,6 +21,9 @@ import os
 import sys
 import time
 import json
+import yaml
+import hashlib
+import shutil
 from threading import Timer
 import subprocess
 from framework import S3PyCliTest
@@ -28,6 +31,9 @@ from framework import Config
 from framework import logit
 from s3client_config import S3ClientConfig
 from shlex import quote
+from aclvalidation import AclTest
+from auth import AuthTest
+from ldap_setup import LdapInfo
 
 class AwsTest(S3PyCliTest):
     def __init__(self, description):
@@ -391,3 +397,92 @@ class AwsTest(S3PyCliTest):
         cmd = "aws s3api " + "delete-bucket-policy " + "--bucket " + bucket_name
         self.with_cli(cmd)
         return self
+
+
+#########################################
+#### All Util functions here ############
+#########################################
+
+# Transform AWS CLI text output into an object(dictionary)
+# with content:
+# {
+#   "prefix":<list of common prefix>,
+#   "keys": <list of regular keys>,
+#   "next_token": <token>
+# }
+def get_aws_cli_object(raw_aws_cli_output):
+    cli_obj = {}
+    raw_lines = raw_aws_cli_output.split('\n')
+    common_prefixes = []
+    content_keys = []
+    for _, item in enumerate(raw_lines):
+        if (item.startswith("COMMONPREFIXES")):
+            # E.g. COMMONPREFIXES  quax/
+            line = item.split('\t')
+            common_prefixes.append(line[1])
+        elif (item.startswith("CONTENTS")):
+            # E.g. CONTENTS\t"98b5e3f766f63787ea1ddc35319cedf7"\tasdf\t2020-09-25T11:42:54.000Z\t3072\tSTANDARD
+            line = item.split('\t')
+            content_keys.append(line[2])
+        elif (item.startswith("NEXTTOKEN")):
+            # E.g. NEXTTOKEN       eyJDb250aW51YXRpb25Ub2tlbiI6IG51bGwsICJib3RvX3RydW5jYXRlX2Ftb3VudCI6IDN9
+            line = item.split('\t')
+            cli_obj["next_token"] = line[1]
+        else:
+            continue
+
+    if (common_prefixes is not None):
+        cli_obj["prefix"] = common_prefixes
+    if (content_keys is not None):
+        cli_obj["keys"] = content_keys
+
+    return cli_obj
+
+# Extract the upload id from response which has the following format
+# [bucketname    objecctname    uploadid]
+
+def get_upload_id(response):
+    key_pairs = response.split('\t')
+    return key_pairs[2]
+
+def get_etag(response):
+    key_pairs = response.split('\t')
+    return key_pairs[3]
+
+def load_test_config():
+    conf_file = os.path.join(os.path.dirname(__file__),'s3iamcli_test_config.yaml')
+    with open(conf_file, 'r') as f:
+            config = yaml.safe_load(f)
+            S3ClientConfig.ldapuser = config['ldapuser']
+            S3ClientConfig.ldappasswd = config['ldappasswd']
+
+def get_response_elements(response):
+    response_elements = {}
+    key_pairs = response.split(',')
+
+    for key_pair in key_pairs:
+        tokens = key_pair.split('=')
+        response_elements[tokens[0].strip()] = tokens[1].strip()
+
+    return response_elements
+
+def create_object_list_file(file_name, obj_list=[], quiet_mode="false"):
+    cwd = os.getcwd()
+    file_to_create = os.path.join(cwd, file_name)
+    objects = "{ \"Objects\": [ { \"Key\": \"" + obj_list[0] + "\" }"
+    for obj in obj_list[1:]:
+        objects += ", { \"Key\": \"" + obj + "\" }"
+    objects += " ], \"Quiet\": " + quiet_mode + " }"
+    with open(file_to_create, 'w') as file:
+        file.write(objects)
+    return file_to_create
+
+def delete_object_list_file(file_name):
+    os.remove(file_name)
+
+def get_md5_sum(fname):
+    hash_md5 = hashlib.md5()
+    with open(fname, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
