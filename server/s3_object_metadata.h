@@ -268,7 +268,7 @@ class S3ObjectMetadata : private S3ObjectMetadataCopyable {
   const struct s3_motr_idx_layout& get_part_index_layout() const {
     return part_index_layout;
   }
-
+  virtual bool get_delete_marker() { return false; }
   void regenerate_version_id();
 
   std::string const get_obj_version_id() { return object_version_id; }
