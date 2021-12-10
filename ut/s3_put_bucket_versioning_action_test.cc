@@ -58,6 +58,7 @@ class S3PutBucketVersioningActionTest : public testing::Test {
     s3_motr_api_mock = std::make_shared<MockS3Motr>();
     mock_motr_kvs_reader_factory = std::make_shared<MockS3MotrKVSReaderFactory>(
         request_mock, s3_motr_api_mock);
+
     call_count_one = 0;
   }
 
